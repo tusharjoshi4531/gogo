@@ -12,7 +12,7 @@ const AuthContext = createContext({
 });
 
 export const AuthProvider = (props) => {
-  const { uid, idToken, userName: name, userEmail: email, createUser, loginUser, logout, setPreviousAuth } =
+  const { uid, idToken, userName: name, userEmail: email, userTagline: tagline, createUser, loginUser, logout, setPreviousAuth } =
     useAuth();
 
   useEffect(() => {
@@ -24,6 +24,7 @@ export const AuthProvider = (props) => {
     idToken,
     email,
     name,
+    tagline,
     createUser,
     loginUser,
     logout,

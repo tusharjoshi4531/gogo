@@ -6,16 +6,9 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useContext, useEffect, useReducer } from "react";
-import { getData, patchData } from "../../database/database-utility";
+import { useContext, useReducer } from "react";
+import { patchData } from "../../database/database-utility";
 import AuthContext from "../../store/auth-context";
-
-const initialFormState = {
-  name: "",
-  tagline: "",
-  nameIsValid: false,
-  nameIsEdited: false,
-};
 
 const formStateReducer = (state, action) => {
   switch (action.type) {
@@ -45,17 +38,13 @@ const formStateReducer = (state, action) => {
 };
 
 const ProfileForm = () => {
-  const [formState, dispatch] = useReducer(formStateReducer, initialFormState);
-  const { uid } = useContext(AuthContext);
-
-  useEffect(() => {
-    const processProfoleData = async () => {
-      const { name, tagline } = await getData(`/users/${uid}`);
-      dispatch({ type: "INIT", payload: { name, tagline } });
-    };
-
-    processProfoleData();
-  }, [uid]);
+  const { uid, name, tagline } = useContext(AuthContext);
+  const [formState, dispatch] = useReducer(formStateReducer, {
+    name,
+    tagline,
+    nameIsValid: name.trim().length >= 5,
+    nameIsEdited: false,
+  });
 
   const nameChangeHandler = (e) => {
     dispatch({ type: "NAME_CHANGE", payload: e.target.value });

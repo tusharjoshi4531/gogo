@@ -7,19 +7,28 @@ const useAuth = () => {
   const [idToken, setIdToken] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
-  const [expireTime, setExpireTime] = useState(0);
+  const [userTagline, setUserTagline] = useState("");
 
   const getExpireTime = (expiresIn) => {
     const expireTime = Date.now() + expiresIn * 1000;
     return expireTime;
   };
 
-  const setAuthInLocalStorage = () => {
+  const setAuthInLocalStorage = (
+    idToken,
+    uid,
+    email,
+    name,
+    expireTime,
+    tagline
+  ) => {
     localStorage.setItem("idToken", idToken);
     localStorage.setItem("uid", uid);
-    localStorage.setItem("email", userEmail);
-    localStorage.setItem("name", userName);
+    localStorage.setItem("email", email);
+    localStorage.setItem("name", name);
     localStorage.setItem("expireTime", expireTime.toString());
+    localStorage.setItem("tagline", !tagline ? "" : tagline);
+    console.log("set", { idToken });
   };
 
   const getAuthInLocalStorage = () => {
@@ -28,13 +37,14 @@ const useAuth = () => {
     const savedEmail = localStorage.getItem("email");
     const savedName = localStorage.getItem("name");
     const savedExpireTime = Number(localStorage.getItem("expireTime"));
-    console.log({savedIdToken, savedUid, savedEmail})
+    const savedTagline = localStorage.getItem("tagline");
     return {
       idToken: savedIdToken,
       uid: savedUid,
       email: savedEmail,
       name: savedName,
       expireTime: savedExpireTime,
+      tagline: savedTagline,
     };
   };
 
@@ -44,16 +54,20 @@ const useAuth = () => {
     localStorage.removeItem("email");
     localStorage.removeItem("name");
     localStorage.removeItem("expireTime");
+    localStorage.removeItem("tagline");
   };
 
   const getUserData = async (uid) => {
-    const { name } = await getData(`/users/${uid}`);
+    const { name, tagline } = await getData(`/users/${uid}`);
     setUserName(name);
+    setUserTagline(!tagline ? "" : tagline);
+    return { name, tagline };
   };
 
   const setPreviousAuth = useCallback(() => {
-    console.log("Set")
-    const { idToken, uid, expireTime, email, name } = getAuthInLocalStorage();
+    // console.log("Set")
+    const { idToken, uid, expireTime, email, name, tagline } =
+      getAuthInLocalStorage();
     const timeRemaining = expireTime - Date.now();
     console.log(timeRemaining);
     if (timeRemaining < 60000) {
@@ -61,11 +75,12 @@ const useAuth = () => {
       return;
     }
 
-    if (uid && idToken) {
+    if (uid) {
       setUid(uid);
       setIdToken(idToken);
       setUserEmail(email);
       setUserName(name);
+      setUserTagline(!tagline ? "" : tagline);
     }
   }, []);
 
@@ -96,8 +111,10 @@ const useAuth = () => {
     setUid(uid);
     setIdToken(idToken);
     setUserEmail(email);
-    setExpireTime(getExpireTime(expiresIn))
-    getUserData(uid).then(() => setAuthInLocalStorage())
+    const expireTime = getExpireTime(expiresIn);
+    getUserData(uid).then(({ name, tagline }) =>
+      setAuthInLocalStorage(idToken, uid, email, name, expireTime, tagline)
+    );
   };
 
   const createAccount = (uid, name) => {
@@ -158,6 +175,7 @@ const useAuth = () => {
     idToken,
     userEmail,
     userName,
+    userTagline,
     createUser,
     loginUser,
     logout,
