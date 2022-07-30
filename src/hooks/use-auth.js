@@ -65,7 +65,6 @@ const useAuth = () => {
   };
 
   const setPreviousAuth = useCallback(() => {
-    // console.log("Set")
     const { idToken, uid, expireTime, email, name, tagline } =
       getAuthInLocalStorage();
     const timeRemaining = expireTime - Date.now();

@@ -17,7 +17,6 @@ const ConversationListItem = ({ divider }) => {
           </ListItemAvatar>
         </ListItemButton>
       </ListItem>
-
       {divider && <Divider />}
     </Fragment>
   );
