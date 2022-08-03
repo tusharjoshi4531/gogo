@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
-import { getData, putData } from "../database/database-utility";
-import { API_KEY } from "../global/Globals";
+// import { putData } from "../firebase/database-utility";
+import { signIn, signUp, updateProfile } from "../firebase/auth-utils";
+import { getData, patchData } from "../firebase/database-utility";
 
 const useAuth = () => {
   const [uid, setUid] = useState("");
@@ -57,12 +58,12 @@ const useAuth = () => {
     localStorage.removeItem("tagline");
   };
 
-  const getUserData = async (uid) => {
-    const { name, tagline } = await getData(`/users/${uid}`);
-    setUserName(name);
-    setUserTagline(!tagline ? "" : tagline);
-    return { name, tagline };
-  };
+  // const getUserData = async (uid) => {
+  //   const { name, tagline } = await getData(`/users/${uid}`);
+  //   setUserName(name);
+  //   setUserTagline(!tagline ? "" : tagline);
+  //   return { name, tagline };
+  // };
 
   const setPreviousAuth = useCallback(() => {
     const { idToken, uid, expireTime, email, name, tagline } =
@@ -83,59 +84,34 @@ const useAuth = () => {
     }
   }, []);
 
-  const authRequest = async (url, body) => {
-    try {
-      const response = await fetch(`${url}${API_KEY}`, {
-        method: "POST",
-        body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.log(data.error.message);
-        return { ok: false, error: data.error.message };
-      } else {
-        return { ok: true, data };
-      }
-    } catch (error) {
-      return { ok: false, error: error.message };
-    }
-  };
-
-  const login = (uid, idToken, email, expiresIn) => {
+  const login = (uid, idToken, email, expiresIn, name, tagline) => {
     setUid(uid);
     setIdToken(idToken);
     setUserEmail(email);
+    setUserName(name);
+    setUserTagline(tagline);
     const expireTime = getExpireTime(expiresIn);
-    getUserData(uid).then(({ name, tagline }) =>
-      setAuthInLocalStorage(idToken, uid, email, name, expireTime, tagline)
-    );
+    setAuthInLocalStorage(idToken, uid, email, name, expireTime, tagline);
   };
 
-  const createAccount = (uid, name) => {
-    putData(`/users/${uid}`, {
-      name,
-    });
-  };
+  // const createAccount = (uid, name) => {
+  //   putData(`/users/${uid}`, {
+  //     name,
+  //   });
+  // };
 
   const createUser = async (email, password) => {
-    const response = await authRequest(
-      "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=",
-      {
-        email,
-        password,
-        returnSecureToken: true,
-      }
-    );
+    const response = await signUp(email, password);
 
     if (response.ok) {
-      const { localId: uid, idToken, expiresIn } = response.data;
-      createAccount(uid, email);
-      login(uid, idToken, email, expiresIn);
+      const { localId: uid, idToken, expiresIn, tagline } = response.data;
+      console.log(response.data);
+      patchData(`/users/${uid}`, {
+        tagline,
+        name: email,
+        uid, 
+      });
+      login(uid, idToken, email, expiresIn, email);
       return { ok: true };
     } else {
       return response;
@@ -143,21 +119,25 @@ const useAuth = () => {
   };
 
   const loginUser = async (email, password) => {
-    const response = await authRequest(
-      "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=",
-      {
-        email,
-        password,
-        returnSecureToken: true,
+    const authResponse = await signIn(email, password);
+    
+    if (authResponse.ok) {
+      const { localId: uid, idToken, expiresIn, displayName } = authResponse.data;
+      const dbResponse = await getData(`/user-data/${uid}`);
+      
+      if(dbResponse.ok){
+        let tagline = ""
+        if(dbResponse.data){
+          tagline = dbResponse.data.tagline;
+        }
+        login(uid, idToken, email, expiresIn, displayName, tagline);
+        return { ok: true };
+      }else{
+        login(uid, idToken, email, expiresIn, displayName, "");
+        return dbResponse;
       }
-    );
-
-    if (response.ok) {
-      const { localId: uid, idToken, expiresIn } = response.data;
-      login(uid, idToken, email, expiresIn);
-      return { ok: true };
     } else {
-      return response;
+      return authResponse;
     }
   };
 
@@ -169,16 +149,32 @@ const useAuth = () => {
     removeAuthInLocalStorage();
   };
 
+  const updateUserInfo = (name, tagline) => {
+    updateProfile(idToken, name, "").then(() => {
+      setUserName(name);
+      localStorage.setItem("name", name);
+    });
+    
+    patchData(`/users/${uid}`, {
+      name, 
+      tagline,
+    }).then(() => {
+      setUserTagline(tagline)
+      localStorage.setItem("tagline", tagline);
+    });
+  };
+
   return {
     uid,
     idToken,
     userEmail,
     userName,
     userTagline,
+    setPreviousAuth,
     createUser,
     loginUser,
     logout,
-    setPreviousAuth,
+    updateUserInfo,
   };
 };
 

@@ -38,13 +38,14 @@ export const patchData = async (dbPath, data) => {
   } catch (e) {
     console.log(e);
   }
-}
+};
 
 export const getData = async (dbPath) => {
   try {
     const data = await makeRequest(dbPath, undefined, "GET");
-    return data;
+    return { ok: true, data };
   } catch (e) {
     console.log(e);
+    return { ok: false, error: e };
   }
 };

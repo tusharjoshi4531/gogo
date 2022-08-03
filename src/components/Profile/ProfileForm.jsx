@@ -7,7 +7,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useContext, useReducer } from "react";
-import { patchData } from "../../database/database-utility";
 import AuthContext from "../../store/auth-context";
 
 const formStateReducer = (state, action) => {
@@ -38,10 +37,10 @@ const formStateReducer = (state, action) => {
 };
 
 const ProfileForm = () => {
-  const { uid, name, tagline } = useContext(AuthContext);
+  const { name, tagline, updateUserInfo } = useContext(AuthContext);
   const [formState, dispatch] = useReducer(formStateReducer, {
-    name,
-    tagline,
+    name: !name ? "" : name,
+    tagline: !tagline ? "" : tagline,
     nameIsValid: name.trim().length >= 5,
     nameIsEdited: false,
   });
@@ -61,10 +60,7 @@ const ProfileForm = () => {
   const formSubmitHandler = (e) => {
     e.preventDefault();
     console.log("submit");
-    patchData(`/users/${uid}`, {
-      name: formState.name,
-      tagline: formState.tagline,
-    });
+    updateUserInfo(formState.name, formState.tagline);
   };
 
   const nameHasError = !formState.nameIsValid && formState.nameIsEdited;

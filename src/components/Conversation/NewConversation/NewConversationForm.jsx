@@ -9,19 +9,30 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Stack,
   TextField,
 } from "@mui/material";
 
-const NewConversationForm = ({ open, onDialogFormSubmit, onDialogFormCancel }) => {
+const NewConversationForm = ({
+  open,
+  onDialogFormSubmit,
+  onDialogFormCancel,
+}) => {
   return (
     <Dialog open={open}>
       <DialogTitle>Create Conversation</DialogTitle>
       <DialogContent>
-        <TextField
-          sx={{ width: "450px" }}
-          variant="standard"
-          label="Email"
-        />
+        <Stack direction="row" sx={{ width: "450px" }}>
+          <TextField sx={{flexGrow: "1"}} variant="standard" label="Email" />
+          <Button
+            variant="contained"
+            size="small"
+            disableElevation
+            sx={{ marginTop: "10px", marginLeft: "15px" }}
+          >
+            Search
+          </Button>
+        </Stack>
         <List>
           <ListItem>
             <ListItemAvatar>
