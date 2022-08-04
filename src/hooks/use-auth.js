@@ -123,7 +123,7 @@ const useAuth = () => {
     
     if (authResponse.ok) {
       const { localId: uid, idToken, expiresIn, displayName } = authResponse.data;
-      const dbResponse = await getData(`/user-data/${uid}`);
+      const dbResponse = await getData(`/users/${uid}`);
       
       if(dbResponse.ok){
         let tagline = ""

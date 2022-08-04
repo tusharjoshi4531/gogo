@@ -13,7 +13,8 @@ const Conversations = () => {
     setDialogIsOpen(true);
   };
 
-  const dialogSubmitHandler = () => {
+  const dialogSubmitHandler = (name, tagline, uid) => {
+    console.log({ name, tagline, uid });
     setDialogIsOpen(false);
   };
 
