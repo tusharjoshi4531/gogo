@@ -13,8 +13,9 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getData } from "../../../firebase/database-utility";
+import AuthContext from "../../../store/auth-context";
 
 const ListProfileItem = ({ name, tagline, uid, onClick }) => {
   const clickHandler = () => {
@@ -39,6 +40,7 @@ const NewConversationForm = ({
 }) => {
   const [searchInput, setSearchInput] = useState("");
   const [foundUsers, setFoundUsers] = useState([]);
+  const { name } = useContext(AuthContext)
 
   const searchInputChangeHandler = (e) => {
     setSearchInput(e.target.value);
@@ -49,7 +51,7 @@ const NewConversationForm = ({
     let t = [];
     for (const key in response.data) {
       const val = response.data[key];
-      if (val.name.includes(searchInput)) {
+      if (val.name.includes(searchInput) && name !== val.name) {
         t.push({ ...val });
       }
     }

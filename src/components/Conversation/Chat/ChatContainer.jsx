@@ -1,7 +1,7 @@
 import { List, Box } from "@mui/material";
 import Chat from "./Chat";
 
-const ChatContainer = () => {
+const ChatContainer = ({ messages }) => {
   return (
     <Box
       sx={{
@@ -14,10 +14,17 @@ const ChatContainer = () => {
       }}
     >
       <List>
-        <Chat incoming>
-          Helloqegagagaegaegaegaegaersfdadaaegageagaegeagaeaegaeggeagegageß
-        </Chat>
-        <Chat incoming>Hello</Chat>
+        {messages.map(({ type, message }, index) => {
+          if (type !== "begin") {
+            return (
+              <Chat incoming={type === "recieved"} key={index}>
+                {message}
+              </Chat>
+            );
+          } else {
+            return <></>;
+          }
+        })}
       </List>
     </Box>
   );
